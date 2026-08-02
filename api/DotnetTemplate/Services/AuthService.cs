@@ -1,9 +1,8 @@
-﻿using Common.Models;
+﻿using DotnetTemplate.Exceptions;
 using DotnetTemplate.Options;
 using DotnetTemplate.Repositories;
 using DotnetTemplate.Requests;
 using DotnetTemplate.Responses;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 
 namespace DotnetTemplate.Services;
@@ -44,10 +43,14 @@ public sealed class AuthService
         var user = await _userRepository.GetUserByEmail(request.Email);
 
         if (user == null)
-            throw new UnauthorizedAccessException("E-mail ou senha inválidos.");
+            throw new ApiException(
+                StatusCodes.Status401Unauthorized,
+                "E-mail ou senha inválidos.");
 
         if (!_passwordService.Verify(request.Password, user.PasswordHash))
-            throw new UnauthorizedAccessException("E-mail ou senha inválidos.");
+            throw new ApiException(
+                StatusCodes.Status401Unauthorized,
+                "E-mail ou senha inválidos.");
 
         user.LastLoginAt = DateTime.UtcNow;
         await _userRepository.UpdateUser(user);
@@ -95,7 +98,9 @@ public sealed class AuthService
         var user = await _userRepository.GetUserByEmail(request.Email);
 
         if (user == null)
-            throw new KeyNotFoundException("E-mail não cadastrado.");
+            throw new ApiException(
+                StatusCodes.Status404NotFound,
+                "E-mail não cadastrado.");
 
         var resetToken = _tokenService.GeneratePasswordResetToken();
 
@@ -135,12 +140,16 @@ public sealed class AuthService
         var user = await _userRepository.GetUserByPasswordResetToken(request.Token);
 
         if (user == null)
-            throw new InvalidOperationException("Token inválido.");
+            throw new ApiException(
+                StatusCodes.Status400BadRequest,
+                "Token inválido.");
 
         if (!user.PasswordResetTokenExpiresAt.HasValue ||
             user.PasswordResetTokenExpiresAt.Value < DateTime.UtcNow)
         {
-            throw new InvalidOperationException("Token expirado.");
+            throw new ApiException(
+                StatusCodes.Status400BadRequest,
+                "Token expirado.");
         }
 
         user.PasswordHash = _passwordService.Hash(request.NewPassword);
@@ -156,10 +165,14 @@ public sealed class AuthService
         var token = await _refreshTokenRepository.GetTokenByToken(refreshToken);
 
         if (token == null)
-            throw new UnauthorizedAccessException("Refresh Token inválido.");
+            throw new ApiException(
+                StatusCodes.Status401Unauthorized,
+                "Refresh Token inválido.");
 
         if (!token.IsActive)
-            throw new UnauthorizedAccessException("Refresh Token expirado.");
+            throw new ApiException(
+                StatusCodes.Status401Unauthorized,
+                "Refresh Token expirado.");
 
         token.RevokedAt = DateTime.UtcNow;
         await _refreshTokenRepository.UpdateToken(token);
@@ -198,7 +211,9 @@ public sealed class AuthService
         var usuario = await _userRepository.GetUserById(id);
 
         if (usuario == null)
-            throw new UnauthorizedAccessException($"Usuário não logado. ID: {id}");
+            throw new ApiException(
+                StatusCodes.Status401Unauthorized,
+                $"Usuário não logado. ID: {id}");
 
         return new UserResponse
         {

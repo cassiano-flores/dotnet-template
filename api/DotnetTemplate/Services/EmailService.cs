@@ -1,3 +1,4 @@
+using DotnetTemplate.Exceptions;
 using DotnetTemplate.Options;
 using Microsoft.Extensions.Options;
 using System.Net;
@@ -22,7 +23,9 @@ public sealed class EmailService : IEmailService
         {
             _logger.LogError("O envio de e-mail não está configurado: senha SMTP ausente.");
 
-            throw new InvalidOperationException("O serviço de e-mail está temporariamente indisponível.");
+            throw new ApiException(
+                StatusCodes.Status503ServiceUnavailable,
+                "O serviço de e-mail está temporariamente indisponível.");
         }
 
         using var message = new MailMessage

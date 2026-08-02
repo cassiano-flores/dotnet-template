@@ -1,5 +1,5 @@
-﻿using Common.Models;
-using DotnetTemplate.Exceptions;
+﻿using DotnetTemplate.Exceptions;
+using DotnetTemplate.Models;
 using DotnetTemplate.Repositories;
 using DotnetTemplate.Requests;
 using DotnetTemplate.Responses;
@@ -22,7 +22,9 @@ public class UserService
         var user = await _repository.GetUserById(id);
 
         if (user == null)
-            throw new KeyNotFoundException($"Usuário não encontrado. ID: {id}");
+            throw new ApiException(
+                StatusCodes.Status404NotFound,
+                $"Usuário não encontrado. ID: {id}");
 
         return UserResponseConvert(user);
     }
@@ -32,7 +34,9 @@ public class UserService
         var existente = await _repository.GetUserByEmail(request.Email);
 
         if (existente != null)
-            throw new ConflictException("Já existe um usuário com este e-mail.");
+            throw new ApiException(
+                StatusCodes.Status409Conflict,
+                "Já existe um usuário com este e-mail.");
 
         var user = new User
         {
@@ -51,7 +55,9 @@ public class UserService
         var user = await _repository.GetUserById(id);
 
         if (user == null)
-            throw new KeyNotFoundException($"Usuário não encontrado. ID: {id}");
+            throw new ApiException(
+                StatusCodes.Status404NotFound,
+                $"Usuário não encontrado. ID: {id}");
 
         user.Name = request.Name;
 
@@ -65,10 +71,14 @@ public class UserService
         var user = await _repository.GetUserById(id);
 
         if (user == null)
-            throw new KeyNotFoundException($"Usuário não encontrado. ID: {id}");
+            throw new ApiException(
+                StatusCodes.Status404NotFound,
+                $"Usuário não encontrado. ID: {id}");
 
         if (!_passwordService.Verify(currentPassword, user.PasswordHash))
-            throw new InvalidOperationException("A senha atual está incorreta.");
+            throw new ApiException(
+                StatusCodes.Status400BadRequest,
+                "A senha atual está incorreta.");
 
         user.PasswordHash = _passwordService.Hash(newPassword);
 
@@ -82,7 +92,9 @@ public class UserService
         var user = await _repository.GetUserById(id);
 
         if (user == null)
-            throw new KeyNotFoundException($"Usuário não encontrado. ID: {id}");
+            throw new ApiException(
+                StatusCodes.Status404NotFound,
+                $"Usuário não encontrado. ID: {id}");
 
         await _repository.RemoveUser(user);
     }

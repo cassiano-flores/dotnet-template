@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using DotnetTemplate.Exceptions;
+using System.Security.Claims;
 
 namespace DotnetTemplate.Services;
 
@@ -20,7 +21,9 @@ public sealed class CurrentUserService
             .Value;
 
         if (string.IsNullOrWhiteSpace(value))
-            throw new UnauthorizedAccessException("Usuário não logado.");
+            throw new ApiException(
+                StatusCodes.Status401Unauthorized,
+                "Usuário não logado.");
 
         return Guid.Parse(value);
     }
@@ -32,6 +35,8 @@ public sealed class CurrentUserService
             .User
             .FindFirst(ClaimTypes.Email)?
             .Value
-            ?? throw new UnauthorizedAccessException("Usuário não logado.");
+            ?? throw new ApiException(
+                StatusCodes.Status401Unauthorized,
+                "Usuário não logado.");
     }
 }

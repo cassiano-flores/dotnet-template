@@ -1,4 +1,4 @@
-﻿using Common.Models;
+﻿using DotnetTemplate.Models;
 using DotnetTemplate.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;

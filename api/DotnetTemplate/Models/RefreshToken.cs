@@ -1,4 +1,4 @@
-﻿namespace Common.Models;
+﻿using DotnetTemplate.Models;
 
 public class RefreshToken
 {

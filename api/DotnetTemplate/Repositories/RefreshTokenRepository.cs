@@ -1,5 +1,4 @@
-﻿using Common.Models;
-using DotnetTemplate.Data;
+﻿using DotnetTemplate.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotnetTemplate.Repositories;

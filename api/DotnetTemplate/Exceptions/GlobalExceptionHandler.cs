@@ -5,37 +5,20 @@ namespace DotnetTemplate.Exceptions;
 
 public sealed class GlobalExceptionHandler : IExceptionHandler
 {
-    private readonly ILogger<GlobalExceptionHandler> _logger;
-
-    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+    public GlobalExceptionHandler()
     {
-        _logger = logger;
     }
 
-    public async ValueTask<bool> TryHandleAsync(
-        HttpContext httpContext,
-        Exception exception,
-        CancellationToken cancellationToken)
+    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         var statusCode = exception switch
         {
-            InvalidOperationException => StatusCodes.Status400BadRequest,
-            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
-            KeyNotFoundException => StatusCodes.Status404NotFound,
-            ConflictException => StatusCodes.Status409Conflict,
+            ApiException apiException => apiException.StatusCode,
+
             _ => StatusCodes.Status500InternalServerError
         };
 
-        if (statusCode >= 500)
-        {
-            _logger.LogError(exception, "Erro não tratado na aplicação.");
-        }
-        else
-        {
-            _logger.LogWarning(exception, "Erro tratado pela aplicação.");
-        }
-
-        var message = statusCode >= 500
+        var message = statusCode >= 500 && exception is not ApiException
             ? "Ocorreu um erro interno na aplicação."
             : exception.Message;
 
@@ -44,26 +27,11 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         await httpContext.Response.WriteAsJsonAsync(
             new ErrorResponse
             {
-                Title = GetTitle(statusCode),
-                Status = statusCode,
-                Message = message
+                Message = message,
+                Status = statusCode
             },
             cancellationToken);
 
         return true;
-    }
-
-    private static string GetTitle(int statusCode)
-    {
-        return statusCode switch
-        {
-            StatusCodes.Status400BadRequest => "Bad Request",
-            StatusCodes.Status401Unauthorized => "Unauthorized",
-            StatusCodes.Status403Forbidden => "Forbidden",
-            StatusCodes.Status404NotFound => "Not Found",
-            StatusCodes.Status409Conflict => "Conflict",
-            StatusCodes.Status429TooManyRequests => "Too Many Requests",
-            _ => "Internal Server Error"
-        };
     }
 }

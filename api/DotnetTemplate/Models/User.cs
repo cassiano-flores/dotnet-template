@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Common.Models;
+namespace DotnetTemplate.Models;
 
 [Table("usuario")]
 public class User
